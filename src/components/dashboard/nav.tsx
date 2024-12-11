@@ -1,36 +1,29 @@
-"use client";
-
-import { navItems } from "@/config/nav";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { AuthButton } from "../auth/auth-button";
+import { CreditsDisplay } from "./credits-display";
+import { NavItems } from "./nav-items";
+import { Button } from "../ui/button";
+import { Sparkles } from "lucide-react";
+import Link from "next/link";
 
-const DashboardNav = () => {
-  const pathname = usePathname();
-
+export default function DashboardNav() {
   return (
-    <nav className="grid gap-2 items-start">
-      {navItems.map((item) => (
-        <Button
-          key={item.href}
-          variant={pathname === item.href ? "secondary" : "ghost"}
-          className={cn("justify-start", pathname === item.href && "bg-accent")}
-          asChild
-        >
-          <Link href={item.href}>
-            {item.icon && <item.icon className="h-4 w-4 mr-2" />}
-            {item.title}
-          </Link>
-        </Button>
-      ))}
+    <div className="flex h-full flex-col justify-between">
+      <div className="grid items-start gap-2">
+        <nav className="grid items-start gap-2">
+          <NavItems />
+        </nav>
 
-      <div className="my-4 px-4 md:hidden">
-        <AuthButton />
+        <div className="my-4 px-4 md:hidden">
+          <AuthButton />
+        </div>
       </div>
-    </nav>
-  );
-};
 
-export default DashboardNav;
+      <div className="flex flex-col gap-4 p-4">
+        <CreditsDisplay />
+        <Button asChild className="w-full" variant="premium">
+          <Link href="/dashboard/plan">プランをアップグレード</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
