@@ -10,12 +10,12 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col space-y-6">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background">
         <div className="flex items-center h-16 px-6">
           <MobileNav />
 
-          <div className="flex w-full">
+          <div className="flex w-full items-center">
             <Link href="/">
               <h1 className="text-lg font-bold">AI Image Generator</h1>
             </Link>
@@ -28,7 +28,7 @@ export default async function DashboardLayout({
       </header>
 
       <div className="container grid flex-1 gap-12 md:grid-cols-[200px_1fr]">
-        <aside className="hidden w-[200px] flex-col md:flex">
+        <aside className="hidden w-[240px] flex-col md:flex border-r py-6 px-3">
           <DashboardNav />
         </aside>
         <main className="flex w-full flex-1 flex-col overflow-hidden">

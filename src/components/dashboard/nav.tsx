@@ -2,7 +2,6 @@ import { AuthButton } from "../auth/auth-button";
 import { CreditsDisplay } from "./credits-display";
 import { NavItems } from "./nav-items";
 import { Button } from "../ui/button";
-import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardNav() {

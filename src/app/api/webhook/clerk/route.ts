@@ -1,17 +1,9 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-// PrismaClientのインスタンスをグローバルに保持（ホットリロード対策）
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.SIGNING_SECRET;
@@ -59,15 +51,18 @@ export async function POST(req: Request) {
     const email = email_addresses[0].email_address;
 
     try {
-      // ユーザーをデータベースに作成
       const user = await prisma.user.create({
         data: {
           clerkId: id,
           email: email,
-          credits: 10, // デフォルトクレジット
+          credits: 10,
           subscriptionStatus: 'FREE'
         },
       });
+
+      // キャッシュを無効化
+      revalidatePath('/dashboard');
+      revalidatePath('/dashboard/plan');
 
       return NextResponse.json({ user }, { status: 201 });
     } catch (error) {
@@ -92,6 +87,9 @@ export async function POST(req: Request) {
         },
       });
 
+      // ダッシュボードのパスを再検証
+      revalidatePath('/dashboard');
+
       return NextResponse.json({ user }, { status: 200 });
     } catch (error) {
       console.error("Error updating user:", error);
@@ -110,6 +108,9 @@ export async function POST(req: Request) {
       const user = await prisma.user.delete({
         where: { clerkId: id },
       });
+
+      // ダッシュボードのパスを再検証
+      revalidatePath('/dashboard');
 
       return NextResponse.json({ user }, { status: 200 });
     } catch (error) {

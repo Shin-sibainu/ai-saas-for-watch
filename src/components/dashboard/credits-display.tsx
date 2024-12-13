@@ -1,6 +1,8 @@
 import { getUserCredits } from "@/lib/user";
+import { unstable_noStore } from "next/cache";
 
 export async function CreditsDisplay() {
+  unstable_noStore();
   const credits = await getUserCredits();
 
   return (

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { GenerateImageState } from "@/types/actions";
 import { Download, ImageIcon } from "lucide-react";
-import React, { useActionState } from "react";
+import { useActionState } from "react";
 import LoadingSpinner from "../loading-spinner";
 import { toast } from "@/hooks/use-toast";
 
@@ -18,7 +18,19 @@ const initialState: GenerateImageState = {
 
 const ImageGenerator = () => {
   const [state, formAction, pending] = useActionState(
-    generateImage,
+    async (prevState: GenerateImageState, formData: FormData) => {
+      const result = await generateImage(prevState, formData);
+      
+      if (result.status === "error") {
+        toast({
+          title: "エラー",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+      
+      return result;
+    },
     initialState
   );
 
