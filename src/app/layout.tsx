@@ -4,6 +4,7 @@ import { Noto_Sans_JP } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
+import { redirect } from "next/navigation";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
