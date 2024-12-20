@@ -1,11 +1,27 @@
 import { getUserCredits } from "@/lib/user";
 import { unstable_noStore } from "next/cache";
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
 
-// 非同期処理を行うコンポーネントを分離
 async function CreditsContent() {
-  unstable_noStore();
+  const user = await currentUser();
+
+  // 未ログインの場合
+  if (!user) {
+    return (
+      <div className="rounded-lg border bg-muted/50 p-4">
+        <div className="text-sm font-medium text-muted-foreground">
+          残りクレジット
+        </div>
+        <div className="mt-2 flex items-center gap-2 text-muted-foreground text-sm">
+          <Lock className="h-3 w-3" />
+          <span>ログインが必要です</span>
+        </div>
+      </div>
+    );
+  }
+
   const credits = await getUserCredits();
 
   return (
@@ -18,7 +34,6 @@ async function CreditsContent() {
   );
 }
 
-// Suspenseでラップする親コンポーネント
 export function CreditsDisplay() {
   return (
     <Suspense

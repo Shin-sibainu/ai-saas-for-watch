@@ -7,16 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { GenerateImageState } from "@/types/actions";
-import { Download, Layers } from "lucide-react";
+import { Download, Layers, Eraser } from "lucide-react";
 import React, { useActionState } from "react";
 import LoadingSpinner from "../loading-spinner";
 import { toast } from "@/hooks/use-toast";
+import { useUser } from "@clerk/nextjs";
+import { SignInButton } from "@clerk/nextjs";
 
 const initialState: GenerateImageState = {
   status: "idle",
 };
 
 const BackgroundRemover = () => {
+  const { isSignedIn } = useUser();
   const [state, formAction, pending] = useActionState(
     removeBackground,
     initialState
@@ -76,21 +79,29 @@ const BackgroundRemover = () => {
               required
             />
           </div>
-          {/* submit button */}
-          <Button
-            type="submit"
-            disabled={pending}
-            className={cn("w-full duration-200", pending && "bg-primary/80")}
-          >
-            {pending ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <Layers className="mr-2" />
-                背景を削除
-              </>
-            )}
-          </Button>
+          {isSignedIn ? (
+            <Button
+              type="submit"
+              disabled={pending}
+              className={cn("w-full duration-200", pending && "bg-primary/80")}
+            >
+              {pending ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  <Eraser className="mr-2" />
+                  背景を削除
+                </>
+              )}
+            </Button>
+          ) : (
+            <SignInButton mode="modal">
+              <Button className="w-full">
+                <Eraser className="mr-2" />
+                ログインして背景を削除
+              </Button>
+            </SignInButton>
+          )}
         </form>
       </div>
 

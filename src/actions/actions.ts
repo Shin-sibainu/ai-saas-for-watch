@@ -68,16 +68,27 @@ export async function removeBackground(
   state: RemoveBackgroundState,
   formData: FormData
 ): Promise<RemoveBackgroundState> {
-  const image = formData.get("image") as File;
-
-  if (!image) {
-    return {
-      status: "error",
-      error: "画像ファイルを選択してください。",
-    };
-  }
-
   try {
+    const user = await currentUser();
+    if (!user) {
+      throw new Error("認証が必要です");
+    }
+
+    // クレジット残高をチェック
+    const credits = await getUserCredits();
+    if (credits === null || credits < 1) {
+      // クレジット不足時は課金ページへリダイレクト
+      redirect("/dashboard/plan?reason=insufficient_credits");
+    }
+
+    const image = formData.get("image") as File;
+    if (!image) {
+      return {
+        status: "error",
+        error: "画像ファイルを選択してください。",
+      };
+    }
+
     const response = await fetch(
       `${process.env.BASE_URL}/api/remove-background`,
       {
@@ -92,11 +103,19 @@ export async function removeBackground(
 
     const data = await response.json();
 
+    // 処理成功後にクレジットを減らす
+    await decrementUserCredits(user.id);
+    revalidatePath("/dashboard");
+
     return {
       status: "success",
       processedImage: data.imageUrl,
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error; // リダイレクトエラーは再スロー
+    }
+    
     console.error(error);
     return {
       status: "error",
