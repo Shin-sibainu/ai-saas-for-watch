@@ -27,7 +27,7 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <div className="container grid flex-1 gap-12 md:grid-cols-[200px_1fr]">
+      <div className="grid flex-1 gap-12 md:grid-cols-[200px_1fr] w-screen">
         <aside className="hidden w-[240px] flex-col md:flex border-r py-6 px-3">
           <DashboardNav />
         </aside>

@@ -1,8 +1,9 @@
 import { getUserCredits } from "@/lib/user";
 import { unstable_noStore } from "next/cache";
 import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
-// クレジット表示の実際のコンポーネント
+// 非同期処理を行うコンポーネントを分離
 async function CreditsContent() {
   unstable_noStore();
   const credits = await getUserCredits();
@@ -17,17 +18,22 @@ async function CreditsContent() {
   );
 }
 
-// Suspenseでラップしたエクスポート用コンポーネント
+// Suspenseでラップする親コンポーネント
 export function CreditsDisplay() {
   return (
-    <Suspense fallback={
-      <div className="rounded-lg border bg-background p-4">
-        <div className="text-sm font-medium text-muted-foreground">
-          残りクレジット
+    <Suspense
+      fallback={
+        <div className="rounded-lg border bg-background p-4">
+          <div className="text-sm font-medium text-muted-foreground">
+            残りクレジット
+          </div>
+          <div className="mt-2 flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-muted-foreground">読み込み中...</span>
+          </div>
         </div>
-        <div className="mt-2 font-bold animate-pulse">読み込み中...</div>
-      </div>
-    }>
+      }
+    >
       <CreditsContent />
     </Suspense>
   );

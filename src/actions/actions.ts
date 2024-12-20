@@ -4,6 +4,7 @@ import { GenerateImageState, RemoveBackgroundState } from "@/types/actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { decrementUserCredits, getUserCredits } from "@/lib/user";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function generateImage(
   state: GenerateImageState,
@@ -18,7 +19,8 @@ export async function generateImage(
     // クレジット残高をチェック
     const credits = await getUserCredits();
     if (credits === null || credits < 1) {
-      throw new Error("クレジットが不足しています");
+      // クレジット不足時は課金ページへリダイレクト
+      redirect("/dashboard/plan?reason=insufficient_credits");
     }
 
     const keyword = formData.get("keyword");
@@ -42,8 +44,6 @@ export async function generateImage(
 
     // 生成成功後にクレジットを減らす
     await decrementUserCredits(user.id);
-
-    // ダッシュボードのパスを再検証
     revalidatePath("/dashboard");
 
     return {
@@ -52,6 +52,10 @@ export async function generateImage(
       keyword: keyword,
     };
   } catch (error) {
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error; // リダイレクトエラーは再スロー
+    }
+    
     console.error(error);
     return {
       status: "error",
