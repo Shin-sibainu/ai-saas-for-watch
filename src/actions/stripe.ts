@@ -1,12 +1,21 @@
 "use server";
 
-import { stripe } from "@/lib/stripe";
+import { getStripe, STRIPE_PLANS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
+import { StripeState } from "@/types/stripe";
 
-export async function createStripeSession(priceId: string) {
+export async function createStripeSession(
+  prevState: StripeState,
+  formData: FormData
+): Promise<StripeState> {
   try {
+    const stripe = getStripe();
+    const priceId = formData.get("priceId") as string;
+    if (!priceId) {
+      throw new Error("価格IDが必要です");
+    }
+
     const user = await currentUser();
     if (!user) {
       throw new Error("認証が必要です");
@@ -58,9 +67,17 @@ export async function createStripeSession(priceId: string) {
       throw new Error("セッションの作成に失敗しました");
     }
 
-    redirect(session.url);
+    // リダイレクトURLを返す
+    return {
+      status: "success",
+      error: "",
+      redirectUrl: session.url,
+    };
   } catch (error) {
     console.error("Stripe session creation error:", error);
-    throw new Error("決済の処理中にエラーが発生しました");
+    return {
+      status: "error",
+      error: "決済の処理中にエラーが発生しました",
+    };
   }
-} 
+}

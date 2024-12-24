@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const headerPayload = headers();
+    const headerPayload = await headers();
     const svix_id = headerPayload.get("svix-id");
     const svix_timestamp = headerPayload.get("svix-timestamp");
     const svix_signature = headerPayload.get("svix-signature");
@@ -29,10 +29,7 @@ export async function POST(req: Request) {
 
     const payload = await req.json();
     if (!payload) {
-      return NextResponse.json(
-        { error: "Missing payload" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing payload" }, { status: 400 });
     }
 
     const body = JSON.stringify(payload);
@@ -47,10 +44,7 @@ export async function POST(req: Request) {
       }) as WebhookEvent;
     } catch (err) {
       console.error("Webhook verification error:", err);
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
     const eventType = evt.type;
@@ -72,11 +66,11 @@ export async function POST(req: Request) {
             clerkId: id,
             email: email,
             credits: 10,
-            subscriptionStatus: 'FREE'
+            subscriptionStatus: "FREE",
           },
         });
 
-        revalidatePath('/dashboard');
+        revalidatePath("/dashboard");
         return NextResponse.json({ user }, { status: 201 });
       } catch (error) {
         console.error("Database error:", error);
@@ -99,7 +93,7 @@ export async function POST(req: Request) {
           },
         });
 
-        revalidatePath('/dashboard');
+        revalidatePath("/dashboard");
 
         return NextResponse.json({ user }, { status: 200 });
       } catch (error) {
@@ -119,7 +113,7 @@ export async function POST(req: Request) {
           where: { clerkId: id },
         });
 
-        revalidatePath('/dashboard');
+        revalidatePath("/dashboard");
 
         return NextResponse.json({ user }, { status: 200 });
       } catch (error) {
@@ -132,7 +126,6 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
-
   } catch (error) {
     console.error("Webhook processing error:", error);
     return NextResponse.json(
