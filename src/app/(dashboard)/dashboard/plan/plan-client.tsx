@@ -6,6 +6,8 @@ import { STRIPE_PLANS } from "@/lib/stripe";
 import { createStripeSession } from "@/actions/stripe";
 import { useActionState } from "react";
 import { StripeState } from "@/types/stripe";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const plans = [
   {
@@ -69,15 +71,30 @@ const plans = [
 const initialState: StripeState = {
   status: "idle",
   error: "",
+  redirectUrl: "",
 };
 
 export function PlanClient() {
-  const [state, formAction] = useActionState(createStripeSession, initialState);
+  const router = useRouter();
 
-  // リダイレクト処理
-  if (state.status === "success" && state.redirectUrl) {
-    window.location.href = state.redirectUrl;
-  }
+  const [state, formAction] = useActionState(
+    async (prevState: StripeState, formData: FormData) => {
+      const result = await createStripeSession(prevState, formData);
+
+      if (result.status === "error") {
+        toast({
+          title: "エラー",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else if (result.status === "success" && result.redirectUrl) {
+        window.location.href = result.redirectUrl;
+      }
+
+      return result;
+    },
+    initialState
+  );
 
   return (
     <>
