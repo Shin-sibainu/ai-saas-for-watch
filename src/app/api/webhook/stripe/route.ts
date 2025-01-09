@@ -68,36 +68,35 @@ export async function POST(req: Request) {
     });
   }
 
-  // 毎月の更新時（初回決済を含む）にクレジットを付与
-  if (event.type === "invoice.payment_succeeded") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
+  // サブスクリプションの更新時
+  if (event.type === "customer.subscription.updated") {
+    const subscription = event.data.object as Stripe.Subscription;
+    
+    // 更新時のみ処理を行う（キャンセルなどの更新は除外）
+    if (subscription.status === "active") {
+      let credits = 10;
+      switch (subscription.items.data[0].price.id) {
+        case STRIPE_PLANS.STARTER:
+          credits = 50;
+          break;
+        case STRIPE_PLANS.PRO:
+          credits = 120;
+          break;
+        case STRIPE_PLANS.ENTERPRISE:
+          credits = 300;
+          break;
+      }
 
-    let credits = 10;
-    switch (subscription.items.data[0].price.id) {
-      case STRIPE_PLANS.STARTER:
-        credits = 50;
-        break;
-      case STRIPE_PLANS.PRO:
-        credits = 120;
-        break;
-      case STRIPE_PLANS.ENTERPRISE:
-        credits = 300;
-        break;
-    }
-
-    // クレジットを更新
-    await prisma.user.update({
-      where: {
-        stripeCustomerId: session.customer as string,
-      },
-      data: {
-        credits: {
-          increment: credits,
+      // クレジットを更新
+      await prisma.user.update({
+        where: {
+          stripeCustomerId: subscription.customer as string,
         },
-      },
-    });
+        data: {
+          credits: credits,  // incrementではなく、プラン通りの固定値を設定
+        },
+      });
+    }
   }
 
   return new NextResponse(null, { status: 200 });
