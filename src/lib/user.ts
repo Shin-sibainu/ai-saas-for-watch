@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
-import { unstable_noStore } from "next/cache";
 
 export async function getUserCredits() {
-  unstable_noStore(); // キャッシュを無効化
   try {
     const user = await currentUser();
     if (!user) return null;
@@ -32,8 +30,8 @@ export async function decrementUserCredits(clerkId: string) {
       },
       data: {
         credits: {
-          decrement: 1
-        }
+          decrement: 1,
+        },
       },
       select: {
         credits: true,
@@ -45,4 +43,4 @@ export async function decrementUserCredits(clerkId: string) {
     console.error("Error decrementing credits:", error);
     throw new Error("クレジットの更新に失敗しました");
   }
-} 
+}
