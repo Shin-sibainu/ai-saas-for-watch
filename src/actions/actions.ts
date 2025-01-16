@@ -55,7 +55,7 @@ export async function generateImage(
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error; // リダイレクトエラーは再スロー
     }
-    
+
     console.error(error);
     return {
       status: "error",
@@ -115,7 +115,7 @@ export async function removeBackground(
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error; // リダイレクトエラーは再スロー
     }
-    
+
     console.error(error);
     return {
       status: "error",

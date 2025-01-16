@@ -30,4 +30,4 @@ export async function POST() {
     console.error("Error:", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-} 
+}

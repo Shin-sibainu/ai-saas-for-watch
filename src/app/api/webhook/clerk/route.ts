@@ -70,7 +70,6 @@ export async function POST(req: Request) {
           },
         });
 
-        revalidatePath("/dashboard");
         return NextResponse.json({ user }, { status: 201 });
       } catch (error) {
         console.error("Database error:", error);
@@ -93,8 +92,6 @@ export async function POST(req: Request) {
           },
         });
 
-        revalidatePath("/dashboard");
-
         return NextResponse.json({ user }, { status: 200 });
       } catch (error) {
         console.error("Error updating user:", error);
@@ -109,13 +106,24 @@ export async function POST(req: Request) {
       const { id } = evt.data;
 
       try {
-        const user = await prisma.user.delete({
-          where: { clerkId: id },
+        await prisma.$transaction(async (tx) => {
+          await tx.subscription.deleteMany({
+            where: {
+              user: {
+                clerkId: id,
+              },
+            },
+          });
+
+          const user = await tx.user.delete({
+            where: { clerkId: id },
+          });
+
+          return user;
         });
 
         revalidatePath("/dashboard");
-
-        return NextResponse.json({ user }, { status: 200 });
+        return NextResponse.json({ success: true }, { status: 200 });
       } catch (error) {
         console.error("Error deleting user:", error);
         return NextResponse.json(
